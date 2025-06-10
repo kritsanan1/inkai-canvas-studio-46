@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -18,8 +17,10 @@ import { motion } from 'framer-motion';
 import FilterSidebar from '@/components/gallery/FilterSidebar';
 import ImageModal from '@/components/gallery/ImageModal';
 import MasonryGrid from '@/components/gallery/MasonryGrid';
+import SEOWrapper from '@/components/SEOWrapper';
 import { FilterState, GalleryItem } from '@/types/gallery';
 import { useAppStore } from '@/stores/useAppStore';
+import { seoService } from '@/services/seoService';
 
 const Gallery = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -175,6 +176,29 @@ const Gallery = () => {
     }
   ];
 
+  // Generate structured data for gallery
+  const structuredData = useMemo(() => {
+    const creativeWorks = filteredItems.slice(0, 10).map(item => 
+      seoService.getCreativeWorkSchema(item)
+    );
+    
+    return [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Tattoo Design Gallery',
+        description: 'Browse thousands of AI-generated and traditional tattoo designs',
+        url: 'https://inkai-studio.lovable.app/gallery',
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: filteredItems.length,
+          itemListElement: creativeWorks
+        }
+      },
+      ...creativeWorks
+    ];
+  }, [filteredItems]);
+
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -250,143 +274,150 @@ const Gallery = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-deep-black via-background to-card">
-      <div className="flex">
-        {/* Filter Sidebar */}
-        <FilterSidebar
-          filters={filters}
-          onFiltersChange={setFilters}
-          isOpen={isFilterOpen}
-          onToggle={() => setIsFilterOpen(!isFilterOpen)}
-        />
+    <SEOWrapper
+      title="Tattoo Design Gallery - Browse AI-Generated & Traditional Designs | InkAI Studio"
+      description="Explore thousands of unique tattoo designs. Filter by style, body part, artist, and more. Find your perfect tattoo design from our AI-generated and traditional collection."
+      keywords="tattoo gallery, tattoo designs, AI tattoo art, geometric tattoos, minimalist tattoos, blackwork tattoos, tattoo inspiration"
+      structuredData={structuredData}
+    >
+      <div className="min-h-screen bg-gradient-to-br from-deep-black via-background to-card">
+        <div className="flex">
+          {/* Filter Sidebar */}
+          <FilterSidebar
+            filters={filters}
+            onFiltersChange={setFilters}
+            isOpen={isFilterOpen}
+            onToggle={() => setIsFilterOpen(!isFilterOpen)}
+          />
 
-        {/* Main Content */}
-        <div className={`flex-1 transition-all duration-300 ${isFilterOpen ? 'lg:ml-80' : ''}`}>
-          <div className="pt-20 pb-10 px-4 lg:px-8">
-            {/* Header */}
-            <motion.div 
-              className="text-center mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                  Design Gallery
-                </span>
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Explore thousands of AI-generated and traditional tattoo designs
-              </p>
-            </motion.div>
-
-            {/* Controls */}
-            <motion.div 
-              className="mb-8 space-y-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-                {/* Search */}
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    placeholder="Search designs, styles, artists..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-input/50 border-border/30 focus:border-primary/50"
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-4">
-                  {/* Filter Toggle */}
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className="hidden lg:flex"
-                  >
-                    <SlidersHorizontal className="w-4 h-4 mr-2" />
-                    Filters
-                  </Button>
-
-                  {/* Sort */}
-                  <Select value={filters.sortBy} onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value as any }))}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="recent">Most Recent</SelectItem>
-                      <SelectItem value="popular">Most Popular</SelectItem>
-                      <SelectItem value="rating">Highest Rated</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* View Mode */}
-                  <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as any)}>
-                    <ToggleGroupItem value="grid">
-                      <Grid3X3 className="w-4 h-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="list">
-                      <List className="w-4 h-4" />
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-
-              {/* Results Info */}
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>{filteredItems.length} designs found</span>
-                <div className="flex items-center space-x-4">
-                  <span className="flex items-center">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    Trending
+          {/* Main Content */}
+          <div className={`flex-1 transition-all duration-300 ${isFilterOpen ? 'lg:ml-80' : ''}`}>
+            <div className="pt-20 pb-10 px-4 lg:px-8">
+              {/* Header */}
+              <motion.div 
+                className="text-center mb-8"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h1 className="text-4xl md:text-6xl font-bold mb-4">
+                  <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                    Design Gallery
                   </span>
-                  <span className="flex items-center">
-                    <Sparkles className="w-4 h-4 mr-1" />
-                    AI Enhanced
-                  </span>
+                </h1>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                  Explore thousands of AI-generated and traditional tattoo designs
+                </p>
+              </motion.div>
+
+              {/* Controls */}
+              <motion.div 
+                className="mb-8 space-y-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+              >
+                <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                  {/* Search */}
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                    <Input
+                      placeholder="Search designs, styles, artists..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 bg-input/50 border-border/30 focus:border-primary/50"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    {/* Filter Toggle */}
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsFilterOpen(!isFilterOpen)}
+                      className="hidden lg:flex"
+                    >
+                      <SlidersHorizontal className="w-4 h-4 mr-2" />
+                      Filters
+                    </Button>
+
+                    {/* Sort */}
+                    <Select value={filters.sortBy} onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value as any }))}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="recent">Most Recent</SelectItem>
+                        <SelectItem value="popular">Most Popular</SelectItem>
+                        <SelectItem value="rating">Highest Rated</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {/* View Mode */}
+                    <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as any)}>
+                      <ToggleGroupItem value="grid">
+                        <Grid3X3 className="w-4 h-4" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="list">
+                        <List className="w-4 h-4" />
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
 
-            {/* Gallery Grid */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <MasonryGrid
-                items={filteredItems}
-                onItemClick={handleItemClick}
-              />
-            </motion.div>
+                {/* Results Info */}
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>{filteredItems.length} designs found</span>
+                  <div className="flex items-center space-x-4">
+                    <span className="flex items-center">
+                      <TrendingUp className="w-4 h-4 mr-1" />
+                      Trending
+                    </span>
+                    <span className="flex items-center">
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      AI Enhanced
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
 
-            {/* Load More */}
-            <motion.div 
-              className="text-center mt-12"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <Button className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300">
-                Load More Designs
-              </Button>
-            </motion.div>
+              {/* Gallery Grid */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <MasonryGrid
+                  items={filteredItems}
+                  onItemClick={handleItemClick}
+                />
+              </motion.div>
+
+              {/* Load More */}
+              <motion.div 
+                className="text-center mt-12"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <Button className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300">
+                  Load More Designs
+                </Button>
+              </motion.div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Image Modal */}
-      <ImageModal
-        item={selectedItem}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onNext={() => handleModalNavigation('next')}
-        onPrevious={() => handleModalNavigation('prev')}
-        showNavigation={filteredItems.length > 1}
-      />
-    </div>
+        {/* Image Modal */}
+        <ImageModal
+          item={selectedItem}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onNext={() => handleModalNavigation('next')}
+          onPrevious={() => handleModalNavigation('prev')}
+          showNavigation={filteredItems.length > 1}
+        />
+      </div>
+    </SEOWrapper>
   );
 };
 
