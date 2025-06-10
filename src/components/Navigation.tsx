@@ -1,12 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Zap, Palette, Users, Crown, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import SearchBar from './SearchBar';
+import ScrollProgress from './ScrollProgress';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navItems = [
     { href: '/studio', label: 'Studio', icon: Zap },
@@ -18,8 +30,15 @@ const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="fixed top-0 w-full z-50 border-b border-border/20 backdrop-blur-lg bg-background/80">
-      <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <>
+      <ScrollProgress />
+      <header className={cn(
+        "fixed top-0 w-full z-40 border-b transition-all duration-300",
+        scrolled 
+          ? "border-border/40 backdrop-blur-xl bg-background/90 shadow-xl shadow-primary/5" 
+          : "border-border/20 backdrop-blur-lg bg-background/80"
+      )}>
+        <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2 group">
           <div className="relative">
@@ -32,7 +51,7 @@ const Navigation = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="hidden lg:flex items-center space-x-8">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -56,7 +75,11 @@ const Navigation = () => {
           })}
         </div>
 
-        {/* CTA Button */}
+        {/* Search & CTA */}
+        <div className="hidden md:flex items-center space-x-4">
+          <SearchBar className="w-64" />
+        </div>
+        
         <div className="hidden md:flex items-center space-x-4">
           <Button 
             asChild
@@ -73,7 +96,7 @@ const Navigation = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="lg:hidden"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -82,8 +105,9 @@ const Navigation = () => {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden border-t border-border/20 bg-background/95 backdrop-blur-lg">
+        <div className="lg:hidden border-t border-border/20 bg-background/95 backdrop-blur-lg">
           <div className="container mx-auto px-4 py-4 space-y-2">
+            <SearchBar className="w-full mb-4" />
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -117,6 +141,7 @@ const Navigation = () => {
         </div>
       )}
     </header>
+    </>
   );
 };
 

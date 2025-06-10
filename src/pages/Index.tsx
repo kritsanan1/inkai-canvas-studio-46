@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/Navigation';
+import ParticleSystem from '@/components/ParticleSystem';
+import TypewriterText from '@/components/TypewriterText';
+import CountUpAnimation from '@/components/CountUpAnimation';
+import TestimonialCarousel from '@/components/TestimonialCarousel';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -15,38 +21,54 @@ import {
   Palette,
   Download,
   Heart,
-  TrendingUp
+  TrendingUp,
+  Shield,
+  Brush,
+  Cpu
 } from 'lucide-react';
 
 const Index = () => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [typewriterComplete, setTypewriterComplete] = useState(false);
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll();
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   const features = [
     {
-      icon: Sparkles,
-      title: "AI-Powered Design",
-      description: "Generate unique tattoo designs instantly with our advanced artificial intelligence"
-    },
-    {
-      icon: Palette,
-      title: "Multiple Styles",
-      description: "From traditional to geometric, explore dozens of artistic styles and techniques"
+      icon: Cpu,
+      title: "AI Design Generation",
+      description: "Revolutionary AI technology creates unique tattoo designs from your ideas in seconds",
+      learnMore: "Discover how our neural networks understand artistic styles and translate your vision into stunning designs."
     },
     {
       icon: Users,
-      title: "Expert Artists",
-      description: "Connect with verified tattoo artists to bring your AI designs to life"
+      title: "Master Artists",
+      description: "Connect with world-class tattoo artists who specialize in bringing AI designs to life",
+      learnMore: "Our network includes award-winning artists with decades of experience in traditional and modern techniques."
     },
     {
-      icon: Crown,
-      title: "Premium Quality",
-      description: "High-resolution exports ready for professional tattoo application"
+      icon: Shield,
+      title: "Safe Environment",
+      description: "Studio-grade safety standards with certified artists and premium sterilized equipment",
+      learnMore: "Every session follows strict health protocols with single-use needles and autoclave sterilization."
     }
   ];
 
   const stats = [
-    { number: "50K+", label: "Designs Created", icon: Sparkles },
-    { number: "10K+", label: "Active Artists", icon: Users },
-    { number: "98%", label: "Client Satisfaction", icon: Star },
-    { number: "24/7", label: "Support Available", icon: Award }
+    { number: 5000, suffix: "+", label: "Designs Created", icon: Sparkles },
+    { number: 500, suffix: "+", label: "Happy Clients", icon: Users },
+    { number: 10, suffix: "+", label: "Master Artists", icon: Crown },
+    { number: 99, suffix: "%", label: "Satisfaction Rate", icon: Star }
   ];
 
   const testimonials = [
@@ -87,10 +109,53 @@ const Index = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Particle System */}
+        <ParticleSystem mousePosition={mousePosition} count={30} />
+        
         {/* Animated Background */}
-        <div className="absolute inset-0 cyber-grid opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"></div>
+        <motion.div 
+          className="absolute inset-0 cyber-grid opacity-20"
+          style={{ y: backgroundY }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 animate-mesh-gradient"></div>
+        
+        {/* Split Screen Layout */}
+        <div className="absolute inset-0 grid lg:grid-cols-2 gap-0">
+          {/* Left Side - Traditional Tools */}
+          <motion.div 
+            className="relative hidden lg:flex items-center justify-center p-12"
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1, delay: 0.5 }}
+          >
+            <div className="relative">
+              <img 
+                src="/placeholder.svg" 
+                alt="Traditional tattoo tools" 
+                className="w-96 h-96 object-cover rounded-2xl shadow-2xl shadow-primary/20"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl"></div>
+            </div>
+          </motion.div>
+          
+          {/* Right Side - AI Interface */}
+          <motion.div 
+            className="relative hidden lg:flex items-center justify-center p-12"
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1, delay: 0.7 }}
+          >
+            <div className="relative">
+              <img 
+                src="/placeholder.svg" 
+                alt="AI interface mockup" 
+                className="w-96 h-96 object-cover rounded-2xl shadow-2xl shadow-secondary/20"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-2xl"></div>
+            </div>
+          </motion.div>
+        </div>
         
         {/* Floating Elements */}
         <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-primary to-secondary rounded-full opacity-20 blur-3xl animate-cyber-float"></div>
@@ -99,36 +164,56 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
             {/* Badge */}
-            <div className="mb-8 animate-cyber-float">
-              <Badge className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-4 py-2 text-sm font-medium">
+            <motion.div 
+              className="mb-8"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6 }}
+            >
+              <Badge className="bg-gradient-to-r from-primary to-secondary text-primary-foreground px-4 py-2 text-sm font-medium magnetic-hover">
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI-Powered Tattoo Design Platform
               </Badge>
-            </div>
+            </motion.div>
 
-            {/* Main Heading */}
-            <h1 className="text-6xl md:text-8xl font-bold mb-8 leading-tight">
-              <span className="bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent">
-                Ink Your
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent neon-text">
-                Vision
-              </span>
-            </h1>
+            {/* Typewriter Heading */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="mb-8"
+            >
+              <TypewriterText
+                text="Where Art Meets Artificial Intelligence"
+                delay={1000}
+                speed={80}
+                className="text-4xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent leading-tight"
+                onComplete={() => setTypewriterComplete(true)}
+              />
+            </motion.div>
 
             {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
+            <motion.p 
+              className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 30 }}
+              animate={typewriterComplete ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
               Transform your ideas into stunning tattoo designs with AI. Connect with professional artists. 
               Create something extraordinary.
-            </p>
+            </motion.p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-16">
+            <motion.div 
+              className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-16"
+              initial={{ opacity: 0, y: 30 }}
+              animate={typewriterComplete ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 1 }}
+            >
               <Button 
                 asChild
                 size="lg"
-                className="bg-gradient-to-r from-primary to-secondary hover:shadow-2xl hover:shadow-primary/25 transition-all duration-500 text-lg px-8 py-6 h-auto group"
+                className="bg-gradient-to-r from-primary to-secondary hover:shadow-2xl hover:shadow-primary/25 transition-all duration-500 text-lg px-8 py-6 h-auto group magnetic-hover"
               >
                 <Link to="/create-design" className="flex items-center space-x-2">
                   <Zap className="w-5 h-5 group-hover:animate-neon-pulse" />
@@ -140,65 +225,113 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 size="lg"
-                className="border-border/30 hover:border-primary/50 text-lg px-8 py-6 h-auto group"
+                className="border-border/30 hover:border-primary/50 text-lg px-8 py-6 h-auto group magnetic-hover"
               >
                 <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
                 Watch Demo
               </Button>
-            </div>
+            </motion.div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {/* Animated Stats */}
+            <motion.div 
+              className="grid grid-cols-2 md:grid-cols-4 gap-8"
+              initial={{ opacity: 0, y: 30 }}
+              animate={typewriterComplete ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 1.5 }}
+            >
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
-                  <div key={index} className="text-center group">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <motion.div 
+                    key={index} 
+                    className="text-center group"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={typewriterComplete ? { opacity: 1, scale: 1 } : {}}
+                    transition={{ duration: 0.5, delay: 1.7 + index * 0.1 }}
+                  >
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 magnetic-hover">
                       <Icon className="w-6 h-6 text-primary" />
                     </div>
-                    <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      {stat.number}
-                    </div>
+                    <CountUpAnimation
+                      end={stat.number}
+                      suffix={stat.suffix}
+                      duration={2000}
+                      className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+                    />
                     <div className="text-sm text-muted-foreground">{stat.label}</div>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Enhanced Features Section */}
       <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Powerful Features
+                Revolutionary Features
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to create, customize, and bring your tattoo designs to life
+              Everything you need to create, customize, and bring your tattoo designs to life with cutting-edge technology
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid lg:grid-cols-3 gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <Card key={index} className="border-border/20 bg-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 group">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="w-8 h-8 text-primary group-hover:animate-neon-pulse" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-3 group-hover:text-primary transition-colors">
-                      {feature.title}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.2 }}
+                >
+                  <Card className="border-border/20 bg-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 group card-3d h-full">
+                    <CardContent className="p-8 text-center h-full flex flex-col">
+                      <motion.div 
+                        className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.6 }}
+                      >
+                        <Icon className="w-10 h-10 text-primary group-hover:animate-neon-pulse" />
+                      </motion.div>
+                      <h3 className="text-2xl font-semibold mb-4 group-hover:text-primary transition-colors">
+                        {feature.title}
+                      </h3>
+                      <p className="text-muted-foreground mb-6 flex-1">
+                        {feature.description}
+                      </p>
+                      <motion.details 
+                        className="group/details"
+                        whileHover={{ scale: 1.02 }}
+                      >
+                        <summary className="cursor-pointer text-primary hover:text-secondary transition-colors font-medium">
+                          Learn More
+                        </summary>
+                        <motion.p 
+                          className="mt-4 text-sm text-muted-foreground border-t border-border/20 pt-4"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          {feature.learnMore}
+                        </motion.p>
+                      </motion.details>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               );
             })}
           </div>
@@ -243,47 +376,37 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Enhanced Testimonials Carousel */}
       <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Loved by Artists
+                Loved by Artists Worldwide
               </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              See what professional tattoo artists are saying about InkAI Studio
+              See what professional tattoo artists are saying about InkAI Studio and how it's transforming their creative process
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-border/20 bg-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-1 mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-accent fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground mb-6 italic">
-                    "{testimonial.content}"
-                  </p>
-                  <div className="flex items-center space-x-3">
-                    <img
-                      src={testimonial.avatar}
-                      alt={testimonial.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <div className="font-semibold">{testimonial.name}</div>
-                      <div className="text-sm text-muted-foreground">{testimonial.role}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <TestimonialCarousel 
+              testimonials={testimonials}
+              autoPlayInterval={6000}
+            />
+          </motion.div>
         </div>
       </section>
 
