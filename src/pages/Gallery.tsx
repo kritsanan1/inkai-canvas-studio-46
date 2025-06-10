@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -176,29 +177,6 @@ const Gallery = () => {
     }
   ];
 
-  // Generate structured data for gallery
-  const structuredData = useMemo(() => {
-    const creativeWorks = filteredItems.slice(0, 10).map(item => 
-      seoService.getCreativeWorkSchema(item)
-    );
-    
-    return [
-      {
-        '@context': 'https://schema.org',
-        '@type': 'CollectionPage',
-        name: 'Tattoo Design Gallery',
-        description: 'Browse thousands of AI-generated and traditional tattoo designs',
-        url: 'https://inkai-studio.lovable.app/gallery',
-        mainEntity: {
-          '@type': 'ItemList',
-          numberOfItems: filteredItems.length,
-          itemListElement: creativeWorks
-        }
-      },
-      ...creativeWorks
-    ];
-  }, [filteredItems]);
-
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -255,6 +233,29 @@ const Gallery = () => {
 
     return filtered;
   }, [filters]);
+
+  // Generate structured data for gallery
+  const structuredData = useMemo(() => {
+    const creativeWorks = filteredItems.slice(0, 10).map(item => 
+      seoService.getCreativeWorkSchema(item)
+    );
+    
+    return [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Tattoo Design Gallery',
+        description: 'Browse thousands of AI-generated and traditional tattoo designs',
+        url: 'https://inkai-studio.lovable.app/gallery',
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: filteredItems.length,
+          itemListElement: creativeWorks
+        }
+      },
+      ...creativeWorks
+    ];
+  }, [filteredItems]);
 
   const handleItemClick = (item: GalleryItem) => {
     setSelectedItem(item);
