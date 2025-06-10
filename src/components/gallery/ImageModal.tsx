@@ -146,16 +146,23 @@ const ImageModal = ({
                     className="absolute top-0 bottom-0 w-0.5 bg-white cursor-ew-resize z-10"
                     style={{ left: `${sliderPosition}%` }}
                     onMouseDown={(e) => {
-                      const handleMouseMove = (e: MouseEvent) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
+                      const container = e.currentTarget.parentElement;
+                      if (!container) return;
+                      
+                      const handleMouseMove = (moveEvent: MouseEvent) => {
+                        const rect = container.getBoundingClientRect();
+                        const x = moveEvent.clientX - rect.left;
                         const percentage = (x / rect.width) * 100;
                         setSliderPosition(Math.max(0, Math.min(100, percentage)));
                       };
-                      document.addEventListener('mousemove', handleMouseMove);
-                      document.addEventListener('mouseup', () => {
+                      
+                      const handleMouseUp = () => {
                         document.removeEventListener('mousemove', handleMouseMove);
-                      }, { once: true });
+                        document.removeEventListener('mouseup', handleMouseUp);
+                      };
+                      
+                      document.addEventListener('mousemove', handleMouseMove);
+                      document.addEventListener('mouseup', handleMouseUp);
                     }}
                   />
                 </div>
