@@ -1,15 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Zap, Palette, Users, Crown, Plus } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Menu, X, Zap, Palette, Users, Crown, Plus, User, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SearchBar from './SearchBar';
 import ScrollProgress from './ScrollProgress';
+import AuthModal from './auth/AuthModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin');
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +35,24 @@ const Navigation = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const openAuthModal = (tab: 'signin' | 'signup') => {
+    setAuthModalTab(tab);
+    setShowAuthModal(true);
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   return (
     <>
@@ -75,32 +100,98 @@ const Navigation = () => {
           })}
         </div>
 
-        {/* Search & CTA */}
+        {/* Search & User Actions */}
         <div className="hidden md:flex items-center space-x-4">
           <SearchBar className="w-64" />
         </div>
         
-        <div className="hidden md:flex items-center space-x-4">
-          <Button 
-            asChild
-            className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300"
+        <div className="flex items-center space-x-4">
+          {user ? (
+            <>
+              <Button 
+                asChild
+                className="hidden md:flex bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300"
+              >
+                <Link to="/create-design" className="flex items-center space-x-2">
+                  <Plus className="w-4 h-4" />
+                  <span>Create Design</span>
+                </Link>
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10 border-2 border-primary/20">
+                      <AvatarImage 
+                        src={user.user_metadata?.avatar_url} 
+                        alt={user.user_metadata?.full_name || user.email} 
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20">
+                        {user.user_metadata?.full_name 
+                          ? getInitials(user.user_metadata.full_name)
+                          : user.email?.charAt(0).toUpperCase()
+                        }
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex flex-col space-y-1 p-2">
+                    <p className="text-sm font-medium leading-none">
+                      {user.user_metadata?.full_name || 'User'}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <div className="hidden md:flex items-center space-x-2">
+              <Button 
+                variant="ghost"
+                onClick={() => openAuthModal('signin')}
+              >
+                Sign In
+              </Button>
+              <Button 
+                onClick={() => openAuthModal('signup')}
+                className="bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300"
+              >
+                Get Started
+              </Button>
+            </div>
+          )}
+
+          {/* Mobile menu button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setIsOpen(!isOpen)}
           >
-            <Link to="/create-design" className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>Create Design</span>
-            </Link>
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
-
-        {/* Mobile menu button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
       </nav>
 
       {/* Mobile Navigation */}
@@ -127,20 +218,74 @@ const Navigation = () => {
                 </Link>
               );
             })}
-            <Button 
-              asChild
-              className="w-full bg-gradient-to-r from-primary to-secondary mt-4"
-              onClick={() => setIsOpen(false)}
-            >
-              <Link to="/create-design" className="flex items-center justify-center space-x-2">
-                <Plus className="w-4 h-4" />
-                <span>Create Design</span>
-              </Link>
-            </Button>
+            
+            {user ? (
+              <>
+                <Button 
+                  asChild
+                  className="w-full bg-gradient-to-r from-primary to-secondary mt-4"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Link to="/create-design" className="flex items-center justify-center space-x-2">
+                    <Plus className="w-4 h-4" />
+                    <span>Create Design</span>
+                  </Link>
+                </Button>
+                <div className="pt-4 border-t border-border/20">
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-primary/5 transition-colors"
+                  >
+                    <User className="w-5 h-5" />
+                    <span>Profile</span>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      handleSignOut();
+                      setIsOpen(false);
+                    }}
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <LogOut className="w-5 h-5 mr-3" />
+                    Sign Out
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="pt-4 border-t border-border/20 space-y-2">
+                <Button 
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    openAuthModal('signin');
+                    setIsOpen(false);
+                  }}
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  className="w-full bg-gradient-to-r from-primary to-secondary"
+                  onClick={() => {
+                    openAuthModal('signup');
+                    setIsOpen(false);
+                  }}
+                >
+                  Get Started
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
     </header>
+
+    <AuthModal 
+      isOpen={showAuthModal}
+      onClose={() => setShowAuthModal(false)}
+      defaultTab={authModalTab}
+    />
     </>
   );
 };
