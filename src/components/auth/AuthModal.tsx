@@ -15,8 +15,10 @@ interface AuthModalProps {
   defaultTab?: 'signin' | 'signup';
 }
 
+type TabValue = 'signin' | 'signup' | 'reset';
+
 const AuthModal = ({ isOpen, onClose, defaultTab = 'signin' }: AuthModalProps) => {
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState<TabValue>(defaultTab);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -208,7 +210,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = 'signin' }: AuthModalProps) =
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as TabValue)} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>

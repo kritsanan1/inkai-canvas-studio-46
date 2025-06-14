@@ -17,7 +17,7 @@ interface GalleryControlsProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   filters: FilterState;
-  setFilters: (filters: FilterState) => void;
+  setFilters: (filters: FilterState | ((prev: FilterState) => FilterState)) => void;
   viewMode: 'grid' | 'list';
   setViewMode: (mode: 'grid' | 'list') => void;
   isFilterOpen: boolean;
@@ -65,7 +65,7 @@ const GalleryControls = ({
           </Button>
 
           {/* Sort */}
-          <Select value={filters.sortBy} onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value as any }))}>
+          <Select value={filters.sortBy} onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value as FilterState['sortBy'] }))}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
