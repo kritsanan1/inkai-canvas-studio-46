@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import SearchBar from './SearchBar';
 import ScrollProgress from './ScrollProgress';
 import AuthModal from './auth/AuthModal';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +19,7 @@ const Navigation = () => {
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin');
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,30 +78,32 @@ const Navigation = () => {
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center space-x-8">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  "flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 relative group",
-                  isActive(item.href)
-                    ? "text-primary bg-primary/10 shadow-lg shadow-primary/20"
-                    : "text-muted-foreground hover:text-primary hover:bg-primary/5"
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-                {isActive(item.href) && (
-                  <div className="absolute inset-0 rounded-lg border border-primary/30 animate-neon-pulse"></div>
-                )}
-              </Link>
-            );
-          })}
-        </div>
+        {/* Desktop Navigation - Hidden on mobile since we have bottom nav */}
+        {!isMobile && (
+          <div className="hidden lg:flex items-center space-x-8">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={cn(
+                    "flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 relative group",
+                    isActive(item.href)
+                      ? "text-primary bg-primary/10 shadow-lg shadow-primary/20"
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                  {isActive(item.href) && (
+                    <div className="absolute inset-0 rounded-lg border border-primary/30 animate-neon-pulse"></div>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         {/* Search & User Actions */}
         <div className="hidden md:flex items-center space-x-4">
@@ -108,15 +113,17 @@ const Navigation = () => {
         <div className="flex items-center space-x-4">
           {user ? (
             <>
-              <Button 
-                asChild
-                className="hidden md:flex bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300"
-              >
-                <Link to="/create-design" className="flex items-center space-x-2">
-                  <Plus className="w-4 h-4" />
-                  <span>Create Design</span>
-                </Link>
-              </Button>
+              {!isMobile && (
+                <Button 
+                  asChild
+                  className="hidden md:flex bg-gradient-to-r from-primary to-secondary hover:shadow-lg hover:shadow-primary/25 transition-all duration-300"
+                >
+                  <Link to="/create-design" className="flex items-center space-x-2">
+                    <Plus className="w-4 h-4" />
+                    <span>Create Design</span>
+                  </Link>
+                </Button>
+              )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -182,20 +189,22 @@ const Navigation = () => {
             </div>
           )}
 
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
+          {/* Mobile menu button - Only show for desktop menu access */}
+          {!isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          )}
         </div>
       </nav>
 
-      {/* Mobile Navigation */}
-      {isOpen && (
+      {/* Mobile Navigation - Only for desktop overflow menu */}
+      {isOpen && !isMobile && (
         <div className="lg:hidden border-t border-border/20 bg-background/95 backdrop-blur-lg">
           <div className="container mx-auto px-4 py-4 space-y-2">
             <SearchBar className="w-full mb-4" />

@@ -5,11 +5,13 @@ import ImageModal from '@/components/gallery/ImageModal';
 import GalleryHeader from '@/components/gallery/GalleryHeader';
 import GalleryControls from '@/components/gallery/GalleryControls';
 import GalleryResults from '@/components/gallery/GalleryResults';
-import GalleryContent from '@/components/gallery/GalleryContent';
+import MobileOptimizedGrid from '@/components/gallery/MobileOptimizedGrid';
+import BottomNavigation from '@/components/mobile/BottomNavigation';
 import SEOWrapper from '@/components/SEOWrapper';
 import { FilterState, GalleryItem } from '@/types/gallery';
 import { useGalleryData } from '@/hooks/useGalleryData';
 import { seoService } from '@/services/seoService';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Gallery = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -27,6 +29,7 @@ const Gallery = () => {
     sortBy: 'recent'
   });
 
+  const isMobile = useIsMobile();
   const { filteredItems } = useGalleryData(filters);
 
   // Debounced search
@@ -84,19 +87,21 @@ const Gallery = () => {
       keywords="tattoo gallery, tattoo designs, AI tattoo art, geometric tattoos, minimalist tattoos, blackwork tattoos, tattoo inspiration"
       structuredData={structuredData}
     >
-      <div className="min-h-screen bg-gradient-to-br from-deep-black via-background to-card">
+      <div className="min-h-screen bg-gradient-to-br from-deep-black via-background to-card pb-20 md:pb-0">
         <div className="flex">
-          {/* Filter Sidebar */}
-          <FilterSidebar
-            filters={filters}
-            onFiltersChange={setFilters}
-            isOpen={isFilterOpen}
-            onToggle={() => setIsFilterOpen(!isFilterOpen)}
-          />
+          {/* Desktop Filter Sidebar */}
+          {!isMobile && (
+            <FilterSidebar
+              filters={filters}
+              onFiltersChange={setFilters}
+              isOpen={isFilterOpen}
+              onToggle={() => setIsFilterOpen(!isFilterOpen)}
+            />
+          )}
 
           {/* Main Content */}
-          <div className={`flex-1 transition-all duration-300 ${isFilterOpen ? 'lg:ml-80' : ''}`}>
-            <div className="pt-20 pb-10 px-4 lg:px-8">
+          <div className={`flex-1 transition-all duration-300 ${!isMobile && isFilterOpen ? 'lg:ml-80' : ''}`}>
+            <div className="pt-20 pb-4 md:pb-10 px-4 lg:px-8">
               <GalleryHeader />
 
               <GalleryControls
@@ -112,13 +117,17 @@ const Gallery = () => {
 
               <GalleryResults itemCount={filteredItems.length} />
 
-              <GalleryContent
+              {/* Mobile-optimized gallery grid */}
+              <MobileOptimizedGrid
                 items={filteredItems}
                 onItemClick={handleItemClick}
               />
             </div>
           </div>
         </div>
+
+        {/* Mobile Bottom Navigation */}
+        {isMobile && <BottomNavigation />}
 
         {/* Image Modal */}
         <ImageModal
